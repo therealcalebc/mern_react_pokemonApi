@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import PokemonList from "../PokemonList/PokemonList";
 import styles from "./PokeDex.module.css";
 
@@ -17,28 +18,22 @@ const PokeDex = (props) => {
 		}
 		if (url === urlFromLastFetch) return;
 		// gotta fetch 'em all
-		fetch(url)
+		axios
+			.get(url)
 			.then((response) => {
 				setUrlFromLastFetch(url);
-				return response.json();
-			})
-			.then((response) => {
 				console.log(response);
-				console.log(`setUrlForNextFetch(${response.next});`);
-				const tempResults = response.results.map((item) => item.name);
+				const { next, previous, results } = response.data;
+				console.log(`setUrlForNextFetch(${next});`);
+				const tempResults = results.map((item) => item.name);
 				let tempList = [];
-				if (response.previous != null)
+				if (previous != null)
 					tempList = [...pokemonListAll, ...tempResults];
 				else tempList = tempResults;
 				console.log("TEMPLIST:  ", tempList);
 				setPokemonListAll(tempList);
-				if (urlForNextFetch !== response.next)
-					setUrlForNextFetch(response.next);
-				if (
-					response.next == null ||
-					response.next === "null" ||
-					response.next === undefined
-				)
+				if (urlForNextFetch !== next) setUrlForNextFetch(next);
+				if (next == null || next === "null" || next === undefined)
 					setFetchInitiated(false);
 			})
 			.catch((err) => {
